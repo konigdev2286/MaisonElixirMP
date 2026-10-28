@@ -93,11 +93,20 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
           },
         ]
       : []),
+    {
+      href: '/profil',
+      label: 'Mon Profil',
+      icon: (
+        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+        </svg>
+      ),
+    },
   ];
 
   // Obtenir les initiales de l'utilisateur
   const getInitials = (name: string) => {
-    return name
+    return (name || 'BB')
       .split(' ')
       .map((n) => n[0])
       .slice(0, 2)
@@ -112,7 +121,7 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
   }).format(new Date());
 
   const renderNavLinks = () => (
-    <div className="space-y-1.5 px-3 py-4">
+    <div className="space-y-1.5 px-3 py-2">
       {navLinks.map((link) => {
         const isActive = pathname === link.href;
         return (
@@ -173,20 +182,48 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
           <nav className="mt-2">{renderNavLinks()}</nav>
         </div>
 
-        {/* Widget bas de sidebar : Alerte / Statut */}
-        <div className="p-4 m-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-xs font-semibold text-blue-100">Caisse En Ligne</span>
+        {/* Section Bas de Sidebar : Widget & Profil Utilisateur */}
+        <div className="space-y-3 p-3 pb-4">
+          {/* Widget Statut Caisse */}
+          <div className="p-3.5 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15">
+            <div className="flex items-center gap-2 mb-1.5">
+              <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-xs font-semibold text-blue-100">Caisse En Ligne</span>
+            </div>
+            <p className="text-[11px] text-blue-200 mb-2.5">
+              Monnaie : <strong className="text-white">FCFA</strong> (Brazzaville)
+            </p>
+            <Link
+              href="/vente"
+              className="block w-full text-center rounded-xl bg-white text-[#1d4ed8] hover:bg-blue-50 py-2 text-xs font-bold shadow-sm transition-all"
+            >
+              + Nouvelle Vente
+            </Link>
           </div>
-          <p className="text-xs text-blue-200 mb-3">
-            Monnaie : <strong className="text-white">FCFA</strong> (Brazzaville)
-          </p>
+
+          {/* Carte Profil Cliquable Sidebar Desktop */}
           <Link
-            href="/vente"
-            className="block w-full text-center rounded-xl bg-white text-[#1d4ed8] hover:bg-blue-50 py-2 text-xs font-bold shadow-sm transition-all"
+            href="/profil"
+            className={`flex items-center gap-3 p-2.5 rounded-2xl border transition-all ${
+              pathname === '/profil'
+                ? 'bg-white/20 border-white/30 shadow-md'
+                : 'bg-white/5 border-white/10 hover:bg-white/10'
+            }`}
+            title="Consulter et modifier mon profil"
           >
-            + Nouvelle Vente
+            <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white text-[#1d4ed8] font-bold text-xs shadow-md">
+              {getInitials(user.fullName)}
+              <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-[#1e3a8a]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="text-xs font-bold text-white truncate leading-tight">
+                {user.fullName}
+              </div>
+              <div className="text-[11px] text-blue-200 capitalize truncate mt-0.5">
+                {isPatronne ? '👑 Patronne' : '🛍️ Vendeur'}
+              </div>
+            </div>
+            <span className="text-blue-200 text-xs">→</span>
           </Link>
         </div>
       </aside>
@@ -198,8 +235,9 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
             className="fixed inset-0 bg-black/60 backdrop-blur-sm"
             onClick={() => setMobileMenuOpen(false)}
           />
-          <aside className="relative flex w-72 max-w-[80%] flex-col justify-between bg-gradient-to-b from-[#1d4ed8] via-[#1e40af] to-[#1e3a8a] text-white p-2 shadow-2xl">
-            <div>
+          <aside className="relative flex w-80 max-w-[85%] flex-col justify-between bg-gradient-to-b from-[#1d4ed8] via-[#1e40af] to-[#1e3a8a] text-white p-2 shadow-2xl">
+            <div className="overflow-y-auto">
+              {/* Header Drawer */}
               <div className="flex items-center justify-between p-4 border-b border-white/10">
                 <div className="flex items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-[#1d4ed8] font-bold text-sm">
@@ -209,18 +247,55 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
                 </div>
                 <button
                   onClick={() => setMobileMenuOpen(false)}
-                  className="p-1 rounded-lg hover:bg-white/10 text-white"
+                  className="p-1.5 rounded-lg hover:bg-white/10 text-white"
                 >
                   ✕
                 </button>
               </div>
-              <nav className="mt-2">{renderNavLinks()}</nav>
+
+              {/* CARTE PROFIL MOBILE DANS LE MENU DRAWER */}
+              <div className="p-3 m-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15">
+                <Link
+                  href="/profil"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 group"
+                >
+                  <div className="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-[#1d4ed8] font-black text-sm shadow-md ring-2 ring-white/30">
+                    {getInitials(user.fullName)}
+                    <span className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-emerald-400 ring-2 ring-[#1e40af]" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-sm font-bold text-white truncate leading-tight">
+                      {user.fullName}
+                    </div>
+                    <div className="text-xs text-blue-200 truncate mt-0.5">
+                      {user.email}
+                    </div>
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <span className="inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white">
+                        {isPatronne ? '👑 Patronne' : '🛍️ Vendeur'}
+                      </span>
+                      <span className="text-[11px] text-blue-200 underline font-medium">
+                        Mon Profil →
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              </div>
+
+              {/* Navigation Links */}
+              <nav className="mt-1">{renderNavLinks()}</nav>
             </div>
+
+            {/* Bouton de déconnexion au bas du tiroir mobile */}
             <div className="p-4 border-t border-white/10">
               <button
                 onClick={handleLogout}
-                className="w-full rounded-xl bg-red-500/20 text-red-200 border border-red-500/30 py-2.5 text-xs font-bold hover:bg-red-500/30"
+                className="w-full flex items-center justify-center gap-2 rounded-xl bg-red-500/20 text-red-200 border border-red-500/30 py-2.5 text-xs font-bold hover:bg-red-500/30"
               >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
                 Se déconnecter
               </button>
             </div>
@@ -228,23 +303,24 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
         </div>
       )}
 
-      {/* ZONE CENTRALE (Header Supérieur Fixe + Défilement Contenu) */}
+      {/* ZONE CENTRALE (Header Fixe + Contenu + Bottom Bar Mobile) */}
       <div className="flex flex-1 flex-col min-w-0 h-full overflow-y-auto overflow-x-hidden">
-        {/* TOP BAR / HEADER (Style SilverLogix) - Toujours fixé au top */}
-        <header className="sticky top-0 z-30 shrink-0 flex h-16 items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-4 md:px-8 shadow-sm">
-          <div className="flex items-center gap-3">
+        {/* TOP BAR / HEADER (Fixe au sommet) */}
+        <header className="sticky top-0 z-30 shrink-0 flex h-16 items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-3 sm:px-6 md:px-8 shadow-sm">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Hamburger Button (Mobile) */}
             <button
               onClick={() => setMobileMenuOpen(true)}
-              className="flex md:hidden h-10 w-10 items-center justify-center rounded-xl border border-border text-fg hover:bg-bg-subtle"
+              className="flex md:hidden h-10 w-10 items-center justify-center rounded-xl border border-border text-fg hover:bg-bg-subtle active:scale-95 transition-transform"
+              aria-label="Ouvrir le menu"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </button>
 
-            {/* Barre de Recherche Globale avec raccourci Ctrl+K */}
-            <div className="relative hidden sm:block w-64 lg:w-80">
+            {/* Barre de Recherche Globale (Desktop) */}
+            <div className="relative hidden sm:block w-60 lg:w-80">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-fg-muted pointer-events-none">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -265,9 +341,9 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
             </div>
           </div>
 
-          {/* Outils & Profil utilisateur */}
-          <div className="flex items-center gap-3 md:gap-4">
-            {/* Date Pill */}
+          {/* Outils & Profil utilisateur (Mobile & Ordinateur) */}
+          <div className="flex items-center gap-2 sm:gap-3 md:gap-4">
+            {/* Date Pill (Desktop) */}
             <div className="hidden lg:flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs font-semibold text-fg-muted shadow-sm">
               <svg className="w-4 h-4 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -294,39 +370,115 @@ export function AppNavigation({ user, lowStockCount = 0, children }: AppNavigati
             {/* Theme Toggle (Dark/Light) */}
             <ThemeToggle />
 
-            {/* Profil Utilisateur (Chic Avatar + Infos + Déconnexion) */}
-            <div className="flex items-center gap-3 pl-2 border-l border-border">
-              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-500 text-white font-bold text-xs shadow-sm ring-2 ring-card">
+            {/* Profil Utilisateur Cliquable (Sur Mobile ET Ordinateur) */}
+            <Link
+              href="/profil"
+              className="flex items-center gap-2 sm:gap-2.5 pl-2 sm:pl-3 border-l border-border hover:opacity-90 transition-all group"
+              title="Accéder à Mon Profil"
+            >
+              <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-xs shadow-sm ring-2 ring-card group-hover:ring-accent transition-all">
                 {getInitials(user.fullName)}
                 <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-card" />
               </div>
 
               <div className="hidden sm:block text-left">
-                <div className="text-xs font-bold text-fg leading-tight">
+                <div className="text-xs font-bold text-fg leading-tight group-hover:text-accent transition-colors">
                   {user.fullName}
                 </div>
                 <div className="text-[11px] font-semibold text-accent capitalize">
-                  {user.role}
+                  {isPatronne ? '👑 Patronne' : '🛍️ Vendeur'}
                 </div>
               </div>
+            </Link>
 
-              <button
-                onClick={handleLogout}
-                className="hidden sm:flex p-1.5 rounded-lg text-fg-muted hover:text-danger hover:bg-danger-bg transition-colors"
-                title="Se déconnecter"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-              </button>
-            </div>
+            {/* Bouton Déconnexion Directe (Desktop) */}
+            <button
+              onClick={handleLogout}
+              className="hidden sm:flex p-1.5 rounded-lg text-fg-muted hover:text-danger hover:bg-danger-bg transition-colors"
+              title="Se déconnecter"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
           </div>
         </header>
 
-        {/* CONTENU PRINCIPAL */}
-        <main className="flex-1 p-4 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">
+        {/* CONTENU PRINCIPAL (Espace suffisant pour la barre mobile en bas) */}
+        <main className="flex-1 p-4 pb-24 md:pb-8 md:p-6 lg:p-8 max-w-7xl w-full mx-auto">
           {children}
         </main>
+
+        {/* BARRE DE NAVIGATION INFÉRIEURE MOBILE (Spécial Smartphone) */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-card/95 backdrop-blur-lg border-t border-border px-2 py-1.5 flex items-center justify-around shadow-lg">
+          <Link
+            href="/vente"
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-semibold transition-colors ${
+              pathname === '/vente' ? 'text-accent font-bold' : 'text-fg-muted hover:text-fg'
+            }`}
+          >
+            <svg className="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+            <span>Vente</span>
+          </Link>
+
+          <Link
+            href="/produits"
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-semibold transition-colors ${
+              pathname === '/produits' ? 'text-accent font-bold' : 'text-fg-muted hover:text-fg'
+            }`}
+          >
+            <svg className="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
+            <span>Stock</span>
+          </Link>
+
+          <Link
+            href="/stock-bas"
+            className={`relative flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-semibold transition-colors ${
+              pathname === '/stock-bas' ? 'text-accent font-bold' : 'text-fg-muted hover:text-fg'
+            }`}
+          >
+            <svg className="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+            {lowStockCount > 0 && (
+              <span className="absolute top-0 right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-danger text-[9px] font-bold text-white">
+                {lowStockCount}
+              </span>
+            )}
+            <span>Alertes</span>
+          </Link>
+
+          <Link
+            href={isPatronne ? '/rapports' : '/historique'}
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-semibold transition-colors ${
+              pathname === '/rapports' || pathname === '/historique' ? 'text-accent font-bold' : 'text-fg-muted hover:text-fg'
+            }`}
+          >
+            <svg className="w-5 h-5 mb-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+            <span>{isPatronne ? 'Rapports' : 'Historique'}</span>
+          </Link>
+
+          {/* Onglet Profil Mobile dédié */}
+          <Link
+            href="/profil"
+            className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-[10px] font-semibold transition-colors ${
+              pathname === '/profil' ? 'text-accent font-bold' : 'text-fg-muted hover:text-fg'
+            }`}
+          >
+            <div className={`relative flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-black mb-0.5 ${
+              pathname === '/profil' ? 'bg-accent text-white ring-2 ring-accent/30' : 'bg-fg-muted/20 text-fg'
+            }`}>
+              {getInitials(user.fullName)}
+            </div>
+            <span>Profil</span>
+          </Link>
+        </div>
       </div>
     </div>
   );
